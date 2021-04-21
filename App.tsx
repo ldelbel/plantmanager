@@ -1,5 +1,5 @@
 import React from "react";
-import { UserIdentification } from "./src/pages/UserIdentification";
+import Routes from "./src/routes";
 import AppLoading from "expo-app-loading";
 import {
   useFonts,
@@ -13,8 +13,7 @@ export default function App() {
     Jost_600SemiBold,
   });
 
-  if (!fontsLoaded) 
-    return <AppLoading />;
-  
-  return <UserIdentification />;
+  if (!fontsLoaded) return <AppLoading />;
+
+  return <Routes />;
 }
