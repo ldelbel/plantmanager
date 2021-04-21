@@ -12,8 +12,15 @@ import { Entypo } from "@expo/vector-icons";
 import wateringImg from "../assets/watering.png";
 import colors from "../styles/colors";
 import fonts from "../styles/fonts";
+import { useNavigation } from "@react-navigation/native";
 
 export function Welcome() {
+  const navigation = useNavigation();
+
+  function handleNext() {
+    navigation.navigate('UserIdentification');
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.wrapper}>
@@ -26,7 +33,7 @@ export function Welcome() {
           you whenever you need.
         </Text>
 
-        <TouchableOpacity style={styles.button} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.button} activeOpacity={0.7} onPress={handleNext}>
           <Text>
             <Entypo name="chevron-right" style={styles.buttonIcon} />
           </Text>

@@ -5,6 +5,8 @@ import colors from "../styles/colors";
 import fonts from "../styles/fonts";
 
 export function Confirmation() {
+  function handleStart() {}
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -13,12 +15,11 @@ export function Confirmation() {
         <Text style={styles.subtitle}>
           Now we will take care of your plants very carefully.
         </Text>
-        
-      <View style={styles.footer}>
-        <Button text="Start" />
-      </View>
-      </View>
 
+        <View style={styles.footer}>
+          <Button title="Start" onPress={handleStart} />
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -31,9 +32,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
     padding: 30,
   },
   title: {
@@ -46,18 +47,17 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontFamily: fonts.text,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 17,
     paddingVertical: 20,
-    color: colors.heading
+    color: colors.heading,
   },
   emoji: {
     fontSize: 60,
   },
   footer: {
-    width: '100%',
+    width: "100%",
     paddingHorizontal: 45,
     marginTop: 10,
-  }
-  
+  },
 });
