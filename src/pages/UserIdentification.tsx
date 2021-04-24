@@ -10,7 +10,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
-  Alert
+  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import colors from "../styles/colors";
@@ -24,11 +24,20 @@ export function UserIdentification() {
   const navigation = useNavigation();
 
   async function handleConfirmation() {
-    if(!name) return Alert.alert('Tell me your name');
+    if (!name) return Alert.alert("Tell me your name");
 
-    await AsyncStorage.setItem('@plantmanager:user', name);
-
-    navigation.navigate("Confirmation");
+    try {
+      await AsyncStorage.setItem("@plantmanager:user", name);
+      navigation.navigate("Confirmation", {
+        title: "Done!",
+        subtitle: "Now we'll start taking care of your plants very carefully.",
+        buttonTitle: "Start",
+        icon: "smile",
+        nextScreen: "PlantSelect",
+      });
+    } catch {
+      Alert.alert("Failed to save your name.");
+    }
   }
 
   function handleInputBlur() {

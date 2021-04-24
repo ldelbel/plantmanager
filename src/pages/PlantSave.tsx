@@ -1,68 +1,119 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Alert,
   StyleSheet,
   Text,
   View,
   Image,
-  ScrollView,
   Platform,
   TouchableOpacity,
 } from "react-native";
 import { getBottomSpace } from "react-native-iphone-x-helper";
 import { SvgFromUri } from "react-native-svg";
 import { useRoute } from "@react-navigation/core";
+import DateTimePicker, { Event } from "@react-native-community/datetimepicker";
 import waterdrop from "../assets/waterdrop.png";
 import { Button } from "../components/Button";
 import colors from "../styles/colors";
 import fonts from "../styles/fonts";
-
-interface Plant {
-  id: string;
-  name: string;
-  about: string;
-  water_tips: string;
-  photo: string;
-  environments: [string];
-  frequency: {
-    times: number;
-    repeat_every: string;
-  };
-}
+import { format, isBefore } from "date-fns";
+import { Plant, savePlant } from "../libs/storage";
+import { useNavigation } from "@react-navigation/native";
 
 interface Params {
   plant: Plant;
 }
 
-export function PlantSave() { 
+export function PlantSave() {
   const route = useRoute();
-
+  const [selectedDateTime, setSelectedDateTime] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(Platform.OS === "ios");
+  const navigation = useNavigation();
   const { plant } = route.params as Params;
-  
+
+  function handleChangeTime(event: Event, dateTime: Date | undefined) {
+    if (Platform.OS === "android") {
+      setShowDatePicker((oldState) => !oldState);
+    }
+
+    if (dateTime && isBefore(dateTime, new Date())) {
+      setSelectedDateTime(new Date());
+      return Alert.alert("Choose a time in the future! ⏲️");
+    }
+
+    if (dateTime) setSelectedDateTime(dateTime);
+  }
+
+  function handleOpenDateTimePickerForAndroid() {
+    setShowDatePicker((oldState) => !oldState);
+  }
+
+  async function handleSave() {
+    try {
+      await savePlant({
+        ...plant,
+        dateTimeNotification: selectedDateTime,
+      });
+
+      navigation.navigate("Confirmation", {
+        title: "All done!",
+        subtitle: "Rest assured that we will take care of your plant very carefully",
+        buttonTitle: "Thank you :)",
+        icon: "hug",
+        nextScreen: "MyPlants",
+      });
+
+    } catch {
+      Alert.alert("Couldn't save the Plant. 😢");
+    }
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.plantInfo}>
         <SvgFromUri uri={plant.photo} height={150} width={150} />
 
         <Text style={styles.plantName}>{plant.name}</Text>
-        <Text style={styles.plantAbout}>
-          {plant.about}
-        </Text>
+        <Text style={styles.plantAbout}>{plant.about}</Text>
       </View>
 
       <View style={styles.controller}>
         <View style={styles.tipContainer}>
           <Image source={waterdrop} style={styles.tipImage} />
-          <Text style={styles.tipText}>
-            {plant.water_tips}
-          </Text>
+          <Text style={styles.tipText}>{plant.water_tips}</Text>
         </View>
 
         <View style={styles.alertLabel}>
           Choose the best time to be remembered:
         </View>
 
-        <Button title="Register Plant" onPress={() => {}} />
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDateTime}
+            mode="time"
+            display="spinner"
+            onChange={handleChangeTime}
+          />
+        )}
+
+        {Platform.OS === "android" && (
+          <TouchableOpacity
+            onPress={handleOpenDateTimePickerForAndroid}
+            style={styles.dateTimePickerButton}
+          >
+            <Text style={styles.dateTimePickerText}>{`Change ${format(
+              selectedDateTime,
+              "HH:mm"
+            )}`}</Text>
+          </TouchableOpacity>
+        )}
+
+        <Button
+          title="Register Plant"
+          onPress={() => {
+            handleSave;
+          }}
+        />
       </View>
     </View>
   );
@@ -95,20 +146,20 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   plantAbout: {
-    textAlign: 'center',
-    fontFamily: fonts.text;
+    textAlign: "center",
+    fontFamily: fonts.text,
     color: colors.heading,
     fontSize: 17,
     marginTop: 10,
   },
   tipContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     backgroundColor: colors.blue_light,
     padding: 20,
     borderRadius: 20,
-    position: 'relative',
+    position: "relative",
     bottom: 60,
   },
   tipImage: {
@@ -121,13 +172,23 @@ const styles = StyleSheet.create({
     fontFamily: fonts.text,
     color: colors.blue,
     fontSize: 17,
-    textAlign: 'justify',
+    textAlign: "justify",
   },
   alertLabel: {
-    textAlign: 'center',
+    textAlign: "center",
     fontFamily: fonts.complement,
     color: colors.heading,
     fontSize: 12,
     marginBottom: 5,
-  }
+  },
+  dateTimePickerButton: {
+    width: "100%",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  dateTimePickerText: {
+    color: colors.heading,
+    fontSize: 24,
+    fontFamily: fonts.text,
+  },
 });
