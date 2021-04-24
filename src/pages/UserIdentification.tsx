@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
 import {
   StyleSheet,
   SafeAreaView,
@@ -9,12 +10,12 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import colors from "../styles/colors";
 import fonts from "../styles/fonts";
 import { Button } from "../components/Button";
-import { useState } from "react";
-import { useNavigation } from "@react-navigation/native";
 
 export function UserIdentification() {
   const [isFocused, setIsFocused] = useState(false);
@@ -22,7 +23,11 @@ export function UserIdentification() {
   const [name, setName] = useState<string>();
   const navigation = useNavigation();
 
-  function handleConfirmation() {
+  async function handleConfirmation() {
+    if(!name) return Alert.alert('Tell me your name');
+
+    await AsyncStorage.setItem('@plantmanager:user', name);
+
     navigation.navigate("Confirmation");
   }
 
