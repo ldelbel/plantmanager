@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Notifications from 'expo-notifications';
 import { format } from "date-fns";
 
 export interface Plant {
@@ -19,6 +20,7 @@ export interface Plant {
 export interface StoragePlant {
   [id: string]: {
     data: Plant;
+    notificationID: string;
   };
 }
 
@@ -36,8 +38,23 @@ export async function savePlant(plant: Plant): Promise<void> {
     }
 
     const seconds = Math.abs(
-      Math.ceil(now.getTime() - nextTime.getTime() / 1000)
-    )
+      Math.ceil(now.getTime() - nextTime.getTime()) / 1000);
+
+    const notificationID = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Heeey, 🌱',
+        body: `It's time to take care of your ${plant.name}`,
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.HIGH,
+        data: {
+          plant
+        }
+      },
+      trigger: {
+        seconds: seconds < 60 ? 60 : seconds,
+        repeats: true
+      }
+    })
 
 
     const data = await AsyncStorage.getItem("@plantmanager:plants");
@@ -46,6 +63,7 @@ export async function savePlant(plant: Plant): Promise<void> {
     const newPlant = {
       [plant.id]: {
         data: plant,
+        notificationID
       },
     };
 
@@ -92,6 +110,8 @@ export async function loadPlant(): Promise<Plant[]> {
 export async function removePlant(id: string): Promise<void> {
   const data = await AsyncStorage.getItem("@plantmanager:plants");
   const plants = data ? (JSON.parse(data) as StoragePlant) : {};
+
+  await Notifications.cancelScheduledNotificationAsync(plants[id].notificationID);
 
   delete plants[id];
 
