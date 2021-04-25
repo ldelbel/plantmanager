@@ -1,9 +1,11 @@
 import React from "react";
-import { Text, StyleSheet, View } from "react-native";
+import { Text, StyleSheet, View, Animated } from "react-native";
 import { RectButton, RectButtonProps } from "react-native-gesture-handler";
-import { SvgFromUri } from "react-native-svg";
+import Swipeable from "react-native-gesture-handler/Swipeable";
+import { Rect, SvgFromUri } from "react-native-svg";
 import colors from "../styles/colors";
 import fonts from "../styles/fonts";
+import { Feather } from "@expo/vector-icons";
 
 interface PlantProps extends RectButtonProps {
   data: {
@@ -11,18 +13,36 @@ interface PlantProps extends RectButtonProps {
     photo: string;
     hour: string;
   };
+  handleRemove: () => void;
 }
 
-export const PlantCardSecondary = ({ data, ...rest }: PlantProps) => {
+export const PlantCardSecondary = ({
+  data,
+  handleRemove,
+  ...rest
+}: PlantProps) => {
   return (
-    <RectButton style={styles.container} {...rest}>
-      <SvgFromUri uri={data.photo} width={50} height={50} />
-      <Text style={styles.title}>{data.name}</Text>
-      <View style={styles.details}>
-        <Text style={styles.timeLabel}>Water at</Text>
-        <Text style={styles.time}>{data.hour}</Text>
-      </View>
-    </RectButton>
+    <Swipeable
+      overshootRight={false}
+      renderRightActions={() => (
+        <Animated.View>
+          <View>
+            <RectButton style={styles.removeButton} onPress={handleRemove}>
+              <Feather name="trash" size={32} color={colors.white} />
+            </RectButton>
+          </View>
+        </Animated.View>
+      )}
+    >
+      <RectButton style={styles.container} {...rest}>
+        <SvgFromUri uri={data.photo} width={50} height={50} />
+        <Text style={styles.title}>{data.name}</Text>
+        <View style={styles.details}>
+          <Text style={styles.timeLabel}>Water at</Text>
+          <Text style={styles.time}>{data.hour}</Text>
+        </View>
+      </RectButton>
+    </Swipeable>
   );
 };
 
@@ -58,4 +78,16 @@ const styles = StyleSheet.create({
     fontFamily: fonts.heading,
     color: colors.body_dark,
   },
+  buttonRemove: {
+    width: 100,
+    height: 85,
+    backgroundColor: colors.red,
+    marginTop: 15,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    right: 20,
+    paddingLeft: 15,
+  }
 });

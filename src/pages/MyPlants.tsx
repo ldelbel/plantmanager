@@ -1,19 +1,42 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Text, Image, FlatList } from "react-native";
+import { View, StyleSheet, Text, Image, FlatList, Alert } from "react-native";
 import { Header } from "../components/Header";
 import colors from "../styles/colors";
 import waterdrop from "../assets/waterdrop.png";
-import { loadPlant, Plant } from "../libs/storage";
+import { loadPlant, Plant, removePlant } from "../libs/storage";
 import { useEffect } from "react";
 import { formatDistance } from "date-fns";
 import { enUS } from "date-fns/locale";
 import fonts from "../styles/fonts";
 import { PlantCardSecondary } from "../components/PlantCardSecondary";
+import { Load } from "../components/Load";
 
 export function MyPlants() {
   const [myPlants, setMyPlants] = useState<Plant[]>([]);
   const [loading, setLoading] = useState(true);
   const [nextWatering, setNextWatering] = useState<string>();
+
+  function handleRemove(plant: Plant) {
+    Alert.alert("Remove", `Do you wish to remove the ${plant.name}?`, [
+      {
+        text: "No 🙏",
+        style: "cancel",
+      },
+      {
+        text: "Yes 😢",
+        onPress: async () => {
+          try {
+            await removePlant(plant.id)
+            setMyPlants((oldData) =>
+              oldData.filter((item) => item.id !== plant.id)
+            );
+          } catch (error) {
+            Alert.alert("Could'nt resolve");
+          }
+        },
+      },
+    ]);
+  }
 
   useEffect(() => {
     async function loadStorageData() {
@@ -36,6 +59,8 @@ export function MyPlants() {
     loadStorageData();
   }, []);
 
+  if (loading) return <Load />;
+
   return (
     <View style={styles.container}>
       <Header />
@@ -51,7 +76,12 @@ export function MyPlants() {
         <FlatList
           data={myPlants}
           keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => <PlantCardSecondary data={item} />}
+          renderItem={({ item }) => (
+            <PlantCardSecondary
+              data={item}
+              handleRemove={() => handleRemove(item)}
+            />
+          )}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ flex: 1 }}
         />
@@ -74,9 +104,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 20,
     height: 110,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   spotlightImage: {
     width: 60,
@@ -86,16 +116,16 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.blue,
     paddingHorizontal: 20,
-    textAlign: 'justify'
+    textAlign: "justify",
   },
   plants: {
     flex: 1,
-    width: '100%',
+    width: "100%",
   },
   plantsTitle: {
     fontSize: 24,
     fontFamily: fonts.heading,
     color: colors.heading,
-    marginVertical: 20    
-  }
+    marginVertical: 20,
+  },
 });
